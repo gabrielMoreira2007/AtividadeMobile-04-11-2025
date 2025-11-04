@@ -13,6 +13,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import CadastroTurmaScreen from './src/screens/CadastroTurmaScreen';
 import AtividadesTurmaScreen from './src/screens/AtividadesTurmaScreen';
 import CadastroProfessorScreen from './src/screens/CadastroProfessorScreen'; // Nova tela de cadastro
+import CadastroAtividadeScreen from './src/screens/CadastroAtividadeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ export default function App() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="CadastroTurma" component={CadastroTurmaScreen} />
             <Stack.Screen name="AtividadesTurma" component={AtividadesTurmaScreen} />
+            <Stack.Screen name="CadastroAtividade" component={CadastroAtividadeScreen} />
           </>
         ) : (
           // Telas Acessíveis ANTES do login
