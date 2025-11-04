@@ -25,13 +25,21 @@ cd <NOME_DO_PROJETO>
 Instale as dependências:
 
 npm install
+
 npx expo install react-dom react-native-web
+
 npm install @react-navigation/native @react-navigation/native-stack
+
 npx expo install react-native-screens react-native-safe-area-context
+
 npm install @supabase/supabase-js
+
 npm install react-native-url-polyfill
+
 npx expo install @react-native-async-storage/async-storage
+
 npm install @react-navigation/stack
+
 npx expo install react-native-screens react-native-safe-area-context
 
 ⚡ Observação: Alguns pacotes do react-navigation precisam ser instalados com expo install para compatibilidade com Expo.
