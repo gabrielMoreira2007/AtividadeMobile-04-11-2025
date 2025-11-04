@@ -1,4 +1,4 @@
-// src/screens/LoginScreen.js
+// src/screens/LoginScreen.js - CÓDIGO ATUALIZADO
 import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, 
@@ -7,7 +7,6 @@ import {
 import Supabase from '../services/supabase';
 
 const PRIMARY_BLUE = '#007BFF';
-const PRIMARY_RED = '#DC3545';
 const BACKGROUND_LIGHT = '#F0F2F5';
 const BORDER_COLOR = '#DCDCDC';
 
@@ -17,16 +16,35 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    // Validação básica para evitar requisições vazias
+    if (!email || !password) {
+        Alert.alert("Erro", "Por favor, preencha E-mail e Senha.");
+        return;
+    }
+
     setLoading(true);
+    
+    // 1. Tenta fazer o login com a função do Supabase
     const { error } = await Supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
+    
     setLoading(false);
 
     if (error) {
-      // O Supabase lida com o erro de email/senha inválido
-      Alert.alert("Erro de Login", error.message);
+      // 2. Exibe o erro DETALHADO em caso de falha (Erro 400 ou Credenciais Inválidas)
+      
+      let errorMessage = error.message;
+
+      if (error.status === 400 && error.message.includes('Invalid login credentials')) {
+          errorMessage = "E-mail ou senha inválidos. Verifique suas credenciais.";
+      } else if (error.status === 400 && error.message.includes('Email not confirmed')) {
+          errorMessage = "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.";
+      }
+      
+      Alert.alert("Erro ao Entrar", errorMessage);
+      
     } 
     // Se não houver erro, o App.js detecta a nova sessão e navega automaticamente
   };
@@ -37,8 +55,9 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.header}>
+        {/* Caminho da Imagem corrigido */}
         <Image 
-          source={require('../../assets/logosemfundo.png')}
+          source={require('../img/logosemfundo.png')} 
           style={styles.logo} 
           resizeMode="contain"
         />
@@ -81,20 +100,17 @@ const LoginScreen = ({ navigation }) => {
           )}
         </TouchableOpacity>
 
-        {/* Link para o NOVO Cadastro de Professor */}
         <TouchableOpacity 
           style={styles.linkButton}
           onPress={() => navigation.navigate('CadastroProfessor')}
         >
           <Text style={styles.linkText}>Não tem conta? Cadastre-se</Text>
         </TouchableOpacity>
-
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-// ... (Restante dos estilos (styles) da LoginScreen anterior, apenas adicionando os links)
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: BACKGROUND_LIGHT, justifyContent: 'center', paddingHorizontal: 25, },
     header: { alignItems: 'center', marginBottom: 40, },

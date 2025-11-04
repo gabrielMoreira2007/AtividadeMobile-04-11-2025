@@ -1,10 +1,12 @@
-// src/screens/HomeScreen.js
+// src/screens/HomeScreen.js - CÓDIGO FINAL E CORRIGIDO
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Image, ActivityIndicator 
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Supabase from '../services/supabase';
+// É necessário importar o AsyncStorage aqui para forçar a limpeza manual
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 // Cores do Tema
 const PRIMARY_BLUE = '#007BFF';
@@ -84,7 +86,7 @@ const HomeScreen = ({ navigation }) => {
       return;
     }
 
-    // A) Buscar Nome do Professor (Ponto 2)
+    // A) Buscar Nome do Professor
     const { data: profData, error: profError } = await Supabase
       .from('professores')
       .select('nome')
@@ -98,11 +100,11 @@ const HomeScreen = ({ navigation }) => {
       setProfessorNome(profData.nome);
     }
 
-    // B) Buscar Turmas do Professor (Ponto 4)
+    // B) Buscar Turmas do Professor
     const { data: turmasData, error: turmasError } = await Supabase
       .from('turmas')
       .select('*')
-      .order('created_at', { ascending: false }); // A política RLS garante que só vemos nossas turmas
+      .order('created_at', { ascending: false });
 
     if (turmasError) {
       console.error('Erro ao buscar turmas:', turmasError);
@@ -115,7 +117,6 @@ const HomeScreen = ({ navigation }) => {
     setLoading(false);
   }, []);
 
-  // Usa useFocusEffect para recarregar os dados sempre que a tela for focada
   useFocusEffect(
     useCallback(() => {
       fetchUserData();
@@ -123,8 +124,8 @@ const HomeScreen = ({ navigation }) => {
     }, [fetchUserData])
   );
 
-  // 2. Sair do sistema (Logout) - Ponto 'Sair do Sistema'
-  const handleLogout = async () => {
+  // 2. Sair do sistema (Logout) - CORREÇÃO FINAL COM LIMPEZA MANUAL
+  const handleLogout = () => {
     Alert.alert(
       "Sair do Sistema",
       "Tem certeza que deseja sair?",
@@ -133,11 +134,20 @@ const HomeScreen = ({ navigation }) => {
         { 
           text: "Sair", 
           onPress: async () => {
-            const { error } = await Supabase.auth.signOut();
+            const { error } = await Supabase.auth.signOut(); 
+            
+            // 🚨 SOLUÇÃO PARA LOGOUT FALHO: Limpa o AsyncStorage na marra.
+            try {
+              // Limpa todas as chaves, incluindo o token que mantém a sessão.
+              await AsyncStorage.clear();
+            } catch(e) {
+              console.error("Erro ao limpar AsyncStorage:", e);
+            }
+
             if (error) {
               Alert.alert("Erro ao Sair", error.message);
             }
-            // O App.js detecta a mudança de estado e navega para Login
+            // O App.js detecta que a sessão é nula e navega para Login na próxima renderização/recarregamento.
           },
           style: 'destructive'
         }
@@ -145,7 +155,7 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
-  // 3. Excluir Turma - Ponto 5
+  // 3. Excluir Turma
   const handleExcluirTurma = (turma) => {
     Alert.alert(
       "Confirmar Exclusão",
@@ -158,7 +168,7 @@ const HomeScreen = ({ navigation }) => {
             // A) Verificar se a turma tem atividades (Ponto 5)
             const { count: atividadesCount, error: countError } = await Supabase
               .from('atividades')
-              .select('id', { count: 'exact', head: true }) // Rápido: apenas conta
+              .select('id', { count: 'exact', head: true })
               .eq('turma_id', turma.id);
 
             if (countError) {
@@ -175,7 +185,7 @@ const HomeScreen = ({ navigation }) => {
             const { error: deleteError } = await Supabase
               .from('turmas')
               .delete()
-              .eq('id', turma.id); // A política RLS garante que só podemos excluir a nossa
+              .eq('id', turma.id);
 
             if (deleteError) {
               Alert.alert("Erro", `Não foi possível excluir a turma: ${deleteError.message}`);
@@ -189,6 +199,12 @@ const HomeScreen = ({ navigation }) => {
       ]
     );
   };
+
+  const handleVisualizarTurma = (turma) => {
+      // Navega para a tela de atividades, passando o objeto turma completo
+      navigation.navigate('AtividadesTurma', { turma: turma });
+  };
+
 
   if (loading) {
     return (
@@ -204,19 +220,21 @@ const HomeScreen = ({ navigation }) => {
       {/* Cabeçalho Customizado */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
+          {/* CAMINHO DA IMAGEM CORRIGIDO */}
           <Image 
-            source={require('../../assets/logosemfundo.png')} 
+            source={require('../img/logosemfundo.png')} 
             style={styles.headerLogo} 
             resizeMode="contain"
           />
           <Text style={styles.professorName}>Olá, {professorNome.split(' ')[0]}!</Text>
         </View>
+        {/* Botão de Logout */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
       </View>
       
-      {/* Botão de Ação (Ponto 2) */}
+      {/* Botão de Ação */}
       <TouchableOpacity 
         style={styles.addButton} 
         onPress={() => navigation.navigate('CadastroTurma')}
@@ -227,7 +245,7 @@ const HomeScreen = ({ navigation }) => {
 
       <Text style={styles.listTitle}>Minhas Turmas ({turmas.length})</Text>
 
-      {/* Listagem de Turmas (Ponto 4) */}
+      {/* Listagem de Turmas */}
       <FlatList
         data={turmas}
         keyExtractor={(item) => item.id}
@@ -235,7 +253,7 @@ const HomeScreen = ({ navigation }) => {
           <TurmaCard 
             turma={item} 
             onExcluir={handleExcluirTurma} 
-            onVisualizar={(t) => navigation.navigate('AtividadesTurma', { turma: t })}
+            onVisualizar={handleVisualizarTurma}
           />
         )}
         ListEmptyComponent={() => (
@@ -252,7 +270,7 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BACKGROUND_LIGHT, },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 25, backgroundColor: PRIMARY_BLUE, paddingBottom: 15, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, elevation: 8, },
   headerLeft: { flexDirection: 'row', alignItems: 'center', },
-  headerLogo: { width: 40, height: 40, marginRight: 10, tintColor: '#fff' }, // tintColor para deixar o logo branco
+  headerLogo: { width: 40, height: 40, marginRight: 10, tintColor: '#fff' },
   professorName: { fontSize: 22, fontWeight: 'bold', color: '#fff', },
   logoutButton: { paddingVertical: 8, paddingHorizontal: 12, backgroundColor: PRIMARY_RED, borderRadius: 8, },
   logoutText: { color: '#fff', fontWeight: 'bold', fontSize: 14, },
