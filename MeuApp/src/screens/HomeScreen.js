@@ -71,13 +71,11 @@ const cardStyles = StyleSheet.create({
   buttonText: { color: '#fff', fontSize: 12, fontWeight: 'bold', },
 });
 
-// --- TELA PRINCIPAL DO PROFESSOR ---
 const HomeScreen = ({ navigation }) => {
   const [professorNome, setProfessorNome] = useState('...');
   const [turmas, setTurmas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Buscando o nome do professor e as turmas
   const fetchUserData = useCallback(async () => {
     setLoading(true);
     const user = Supabase.auth.getUser() ? (await Supabase.auth.getUser()).data.user : null;
@@ -86,7 +84,6 @@ const HomeScreen = ({ navigation }) => {
       return;
     }
 
-    // A) Buscar Nome do Professor
     const { data: profData, error: profError } = await Supabase
       .from('professores')
       .select('nome')
@@ -100,7 +97,6 @@ const HomeScreen = ({ navigation }) => {
       setProfessorNome(profData.nome);
     }
 
-    // B) Buscar Turmas do Professor
     const { data: turmasData, error: turmasError } = await Supabase
       .from('turmas')
       .select('*')
@@ -124,7 +120,6 @@ const HomeScreen = ({ navigation }) => {
     }, [fetchUserData])
   );
 
-  // 2. Sair do sistema (Logout) - CORREÇÃO FINAL COM LIMPEZA MANUAL
   const handleLogout = () => {
     Alert.alert(
       "Sair do Sistema",
@@ -136,9 +131,8 @@ const HomeScreen = ({ navigation }) => {
           onPress: async () => {
             const { error } = await Supabase.auth.signOut(); 
             
-            // 🚨 SOLUÇÃO PARA LOGOUT FALHO: Limpa o AsyncStorage na marra.
             try {
-              // Limpa todas as chaves, incluindo o token que mantém a sessão.
+             
               await AsyncStorage.clear();
             } catch(e) {
               console.error("Erro ao limpar AsyncStorage:", e);
@@ -147,7 +141,6 @@ const HomeScreen = ({ navigation }) => {
             if (error) {
               Alert.alert("Erro ao Sair", error.message);
             }
-            // O App.js detecta que a sessão é nula e navega para Login na próxima renderização/recarregamento.
           },
           style: 'destructive'
         }
@@ -217,10 +210,8 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Cabeçalho Customizado */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {/* CAMINHO DA IMAGEM CORRIGIDO */}
           <Image 
             source={require('../img/logosemfundo.png')} 
             style={styles.headerLogo} 
@@ -228,24 +219,21 @@ const HomeScreen = ({ navigation }) => {
           />
           <Text style={styles.professorName}>Olá, {professorNome.split(' ')[0]}!</Text>
         </View>
-        {/* Botão de Logout */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
       </View>
       
-      {/* Botão de Ação */}
       <TouchableOpacity 
         style={styles.addButton} 
         onPress={() => navigation.navigate('CadastroTurma')}
         activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>➕ Cadastrar Nova Turma</Text>
+        <Text style={styles.addButtonText}>Cadastrar Nova Turma</Text>
       </TouchableOpacity>
 
       <Text style={styles.listTitle}>Minhas Turmas ({turmas.length})</Text>
 
-      {/* Listagem de Turmas */}
       <FlatList
         data={turmas}
         keyExtractor={(item) => item.id}
@@ -266,19 +254,101 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 50, backgroundColor: BACKGROUND_LIGHT, },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BACKGROUND_LIGHT, },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 25, backgroundColor: PRIMARY_BLUE, paddingBottom: 15, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, elevation: 8, },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', },
-  headerLogo: { width: 40, height: 40, marginRight: 10, tintColor: '#fff' },
-  professorName: { fontSize: 22, fontWeight: 'bold', color: '#fff', },
-  logoutButton: { paddingVertical: 8, paddingHorizontal: 12, backgroundColor: PRIMARY_RED, borderRadius: 8, },
-  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: 14, },
-  addButton: { backgroundColor: PRIMARY_BLUE, padding: 18, marginHorizontal: 20, borderRadius: 12, alignItems: 'center', marginBottom: 30, elevation: 8, },
-  addButtonText: { color: '#fff', fontSize: 17, fontWeight: 'bold', },
-  listTitle: { fontSize: 20, fontWeight: 'bold', color: TEXT_DARK, marginHorizontal: 20, marginBottom: 15, borderBottomWidth: 2, borderBottomColor: PRIMARY_BLUE, alignSelf: 'flex-start', paddingBottom: 5, },
-  listContent: { paddingHorizontal: 20, paddingBottom: 20, },
-  emptyListText: { textAlign: 'center', color: TEXT_MEDIUM, marginTop: 20, fontSize: 16 }
+  container: { 
+    flex: 1, 
+    paddingTop: 0, 
+    backgroundColor: BACKGROUND_LIGHT, 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: BACKGROUND_LIGHT, 
+  },
+  
+  header: {
+    width: '100%',
+    backgroundColor: PRIMARY_BLUE,
+    paddingTop: 50,          
+    paddingBottom: 15,      
+    paddingHorizontal: 20,   
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 3,   
+    borderBottomColor: '#0056b3',
+    elevation: 6,            
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+
+  headerLeft: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+  },
+  headerLogo: { 
+    width: 42, 
+    height: 42, 
+    marginRight: 10, 
+    tintColor: '#fff' 
+  },
+  professorName: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#fff', 
+  },
+  logoutButton: { 
+    backgroundColor: PRIMARY_RED,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  logoutText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 14, 
+  },
+
+  addButton: { 
+    backgroundColor: PRIMARY_BLUE, 
+    padding: 18, 
+    marginHorizontal: 20, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    marginVertical: 30, 
+    elevation: 8, 
+  },
+  addButtonText: { 
+    color: '#fff', 
+    fontSize: 17, 
+    fontWeight: 'bold', 
+  },
+  listTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: PRIMARY_BLUE, 
+    marginHorizontal: 20, 
+    marginBottom: 15, 
+    borderBottomWidth: 2, 
+    borderBottomColor: PRIMARY_BLUE, 
+    alignSelf: 'flex-start', 
+    paddingBottom: 5, 
+  },
+  listContent: { 
+    paddingHorizontal: 20, 
+    paddingBottom: 20, 
+    backgroundColor: BACKGROUND_LIGHT,
+
+  },
+  emptyListText: { 
+    textAlign: 'center', 
+    color: TEXT_MEDIUM, 
+    marginTop: 20, 
+    fontSize: 16 
+  }
 });
+
 
 export default HomeScreen;

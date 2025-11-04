@@ -20,26 +20,22 @@ export default function App() {
   const [loading, setLoading] = useState(true); // NOVO: Controla a tela de carregamento inicial
 
   useEffect(() => {
-    // 1. Carregar a sessão salva no AsyncStorage ao iniciar o App
     const loadInitialSession = async () => {
         try {
-            // Tenta pegar a sessão do AsyncStorage
             const { data: { session } } = await Supabase.auth.getSession();
             setSession(session);
         } catch (e) {
             console.error("Erro ao carregar sessão inicial:", e);
         } finally {
-            setLoading(false); // SÓ PARAR O LOADING APÓS TENTAR CARREGAR A SESSÃO
+            setLoading(false); 
         }
     };
 
     loadInitialSession();
 
-    // 2. Listener para mudanças de autenticação (Login/Logout)
     const { data: authListener } = Supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
-        // Garante que o loading para, caso tenha sido um evento de login/logout rápido
         if (loading) setLoading(false); 
       }
     );
