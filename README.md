@@ -1,5 +1,7 @@
 # 📚 Sistema de Turmas - App do Professor
 
+Gabriel Moreira e João Gustavo
+
 Bem-vindo ao **Sistema de Turmas**, um app desenvolvido para professores gerenciarem suas turmas de forma prática e rápida!  
 
 Este README irá instruir você a instalar, configurar e executar o aplicativo.
